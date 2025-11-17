@@ -1,0 +1,19 @@
+corpus = """
+Shivanshi is working on multiple machine learning projects.
+Machine learning helps Shivanshi understand data and build better models.
+She is consistent with her work, and consistent efforts make her more confident.
+Data analysis is something Shivanshi practices regularly because data gives clarity.
+"""
+
+import re
+text = corpus.lower()
+text = re.sub(r'[^a-z\s]', '', text)   # keep only letters and spaces
+
+words = text.split()
+
+from collections import Counter
+word_freq = Counter(words)
+
+print("Word Frequency Count:")
+for word, freq in word_freq.items():
+    print(f"{word}: {freq}")
