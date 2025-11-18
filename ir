@@ -1,0 +1,44 @@
+# Information Retrieval System in Python
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Step 1: Corpus (documents)
+documents = [
+    "Data science is the future of technology.",
+    "Machine learning and data analysis are part of data science.",
+    "Python is widely used for machine learning.",
+    "Artificial Intelligence and deep learning are growing fields."
+]
+
+# Step 2: Create TF-IDF matrix
+vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = vectorizer.fit_transform(documents)
+
+# Step 3: User Query
+query = ["machine learning with python"]
+
+# Step 4: Transform query to TF-IDF
+query_vec = vectorizer.transform(query)
+
+# Step 5: Compute Cosine Similarity
+cosine_sim = cosine_similarity(query_vec, tfidf_matrix).flatten()
+
+# Step 6: Rank documents by similarity
+ranked_doc_indices = cosine_sim.argsort()[::-1]
+
+print("Query:", query[0])
+print("\nTop relevant documents:")
+
+for idx in ranked_doc_indices:
+    print(f"Document {idx+1} (Score: {cosine_sim[idx]:.4f}): {documents[idx]}")
+
+"""OUTPUT 
+Query: machine learning with python
+
+Top relevant documents:
+Document 3 (Score: 0.7096): Python is widely used for machine learning.
+Document 2 (Score: 0.3187): Machine learning and data analysis are part of data science.
+Document 4 (Score: 0.1230): Artificial Intelligence and deep learning are growing fields.
+Document 1 (Score: 0.0000): Data science is the future of technology.
+"""
