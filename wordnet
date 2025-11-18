@@ -1,0 +1,114 @@
+# --------------------------------------------------------
+# WordNet Study & Implementation using Python (NLTK)
+# --------------------------------------------------------
+
+import nltk
+from nltk.corpus import wordnet as wn
+
+# Download WordNet resources (run once)
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+
+# --------------------------------------------------------
+# 1. Function: Explore a Word in WordNet
+# --------------------------------------------------------
+
+def explore_word(word):
+    print("="*60)
+    print(f"WORDNET EXPLORATION FOR: {word.upper()}")
+    print("="*60)
+
+    synsets = wn.synsets(word)
+
+    if not synsets:
+        print("No synsets found for this word.")
+        return
+
+    for s in synsets:
+        print(f"\n🔹 Synset: {s.name()}")
+        print(f"   → Part of Speech: {s.pos()}")
+        print(f"   → Definition: {s.definition()}")
+        print(f"   → Examples: {s.examples()}")
+        print(f"   → Lemmas (Synonyms): {[lemma.name() for lemma in s.lemmas()]}")
+
+# --------------------------------------------------------
+# 2. Function: Get Synonyms
+# --------------------------------------------------------
+
+def get_synonyms(word):
+    synonyms = set()
+    for s in wn.synsets(word):
+        for lemma in s.lemmas():
+            synonyms.add(lemma.name())
+    return synonyms
+
+# --------------------------------------------------------
+# 3. Function: Get Antonyms
+# --------------------------------------------------------
+
+def get_antonyms(word):
+    antonyms = set()
+    for s in wn.synsets(word):
+        for lemma in s.lemmas():
+            if lemma.antonyms():
+                antonyms.add(lemma.antonyms()[0].name())
+    return antonyms
+
+# --------------------------------------------------------
+# 4. Function: Hypernyms & Hyponyms
+# --------------------------------------------------------
+
+def print_hierarchy(word):
+    syn = wn.synsets(word)
+    if not syn:
+        print("No synsets found.")
+        return
+
+    syn = syn[0]  # choose first meaning
+
+    print(f"\nWORD: {word}")
+    print(f"SENSE USED: {syn.name()}\n")
+
+    print("HYPERNYMS (Parent concepts):")
+    for h in syn.hypernyms():
+        print("  →", h.name(), ":", h.definition())
+
+    print("\nHYPONYMS (More specific concepts):")
+    for h in syn.hyponyms():
+        print("  →", h.name(), ":", h.definition())
+
+# --------------------------------------------------------
+# 5. Function: Word Similarity
+# --------------------------------------------------------
+
+def similarity(word1, word2):
+    s1 = wn.synsets(word1)
+    s2 = wn.synsets(word2)
+
+    if not s1 or not s2:
+        print("One word not found in WordNet.")
+        return
+
+    syn1 = s1[0]
+    syn2 = s2[0]
+
+    print(f"\nComparing senses: {syn1.name()} vs {syn2.name()}")
+    print("Path Similarity:", syn1.path_similarity(syn2))
+    print("Wu-Palmer Similarity:", syn1.wup_similarity(syn2))
+
+# --------------------------------------------------------
+#              RUN THE FUNCTIONS HERE
+# --------------------------------------------------------
+
+# Example exploration
+explore_word("bank")
+
+# Synonyms + Antonyms
+print("\nSynonyms of 'happy':", get_synonyms("happy"))
+print("Antonyms of 'happy':", get_antonyms("happy"))
+
+# Hypernyms & Hyponyms
+print_hierarchy("dog")
+
+# Similarity between words
+similarity("cat", "dog")
