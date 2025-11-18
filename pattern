@@ -1,0 +1,97 @@
+import re
+
+#VALIDATION FUNCTIONS
+def validate_email (email):
+    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$'
+    return re.fullmatch(pattern, email) is not None
+
+def validate_mobile (mobile):
+    pattern = r'^[6-9]\d{9}$'
+    return re.fullmatch(pattern, mobile) is not None
+
+def validate_landline (landline):
+    pattern = r'^0\d{2,4}-\d{6,8}$'
+    return re.fullmatch(pattern, landline) is not None
+    
+email_corpus = [
+    "john.doe@example.com",
+    "user123@gmail.com",
+    "my-email@domain.co.in",
+    "student_45@university.edu",
+    "first.last@company.org",
+
+    # Invalid
+    "noatsymbol.com",
+    "wrong@domain",
+    "@missingusername.com",
+    "missingdomain@.com",
+    "test@@double.com"
+]
+mobile_corpus = [
+    "9876543210",       # valid Indian
+    "9123456789",
+    "+919876543210",    # valid with country code
+    "+1-202-555-0146",  # valid US format
+    "7070707070",
+
+    # Invalid
+    "12345",            # too short
+    "999999999999",     # too long
+    "98a6543210",       # letters inside
+    "0000000000",       # impossible number
+    "+91-98-76-54"      # incomplete
+]
+landline_corpus = [
+    "022-24381234",   # Mumbai
+    "011-23456789",   # Delhi
+    "080-26543210",   # Bengaluru
+    "033-24567890",   # Kolkata
+    "040-27890123",   # Hyderabad
+
+    # Without hyphen but valid length
+    "02224381234",
+    "01123456789",
+
+    # Invalid
+    "02-24381234",    # wrong STD length
+    "011-23456",      # too short
+    "080-abcdefg",    # contains letters
+    "000-12345678",   # invalid STD
+    "999-99999999"    # non-existent
+]
+
+
+
+# VALIDATION EXECUTION
+def group_valid_invalid(data_list, validation_function):
+    valid = []
+    invalid = []
+    for item in data_list:
+        if validation_function(item):
+            valid.append(item)
+        else:
+            invalid.append(item)
+    return valid, invalid
+
+
+# GROUPED VALIDATION
+email_valid, email_invalid = group_valid_invalid(email_corpus, validate_email)
+mobile_valid, mobile_invalid = group_valid_invalid(mobile_corpus, validate_mobile)
+landline_valid, landline_invalid = group_valid_invalid(landline_corpus, validate_landline)
+
+
+# DISPLAY RESULTS
+def print_grouped(title, valid_list, invalid_list):
+    print(f"\n{title} – Valid Entries:")
+    for item in valid_list:
+        print(f"{item}")
+
+    print("\nInvalid Entries:")
+    for item in invalid_list:
+        print(f"{item}")
+
+
+# OUTPUT
+print_grouped("Email Validation", email_valid, email_invalid)
+print_grouped("Mobile Number Validation", mobile_valid, mobile_invalid)
+print_grouped("Landline Number Validation", landline_valid, landline_invalid)
