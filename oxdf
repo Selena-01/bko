@@ -1,0 +1,59 @@
+import nltk
+from nltk import PCFG
+from nltk.parse import ViterbiParser
+
+# Define the grammar with probabilities
+grammar = PCFG.fromstring("""
+S -> NP VP [1.0]
+NP -> Det N [0.6] | Name [0.4]
+VP -> V NP [1.0]
+Det -> 'the' [1.0]
+N -> 'dog' [0.5] | 'cat' [0.5]
+Name -> 'John' [1.0]
+V -> 'sees' [1.0]
+""")
+
+# Create a parser
+parser = ViterbiParser(grammar)
+
+# Sentence to parse
+sentence = 'John sees the dog'.split()
+
+# Parse the sentence and print tree and probability
+for tree in parser.parse(sentence):
+    print(tree)
+    print(f"Probability of this parse: {tree.prob():.5f}")
+    tree.pretty_print()
+
+# AMBIGUOUS
+import nltk
+from nltk import PCFG
+from nltk.parse import pchart
+
+# 1. Define an ambiguous PCFG
+grammar = PCFG.fromstring("""
+S -> NP VP [1.0]
+NP -> NP PP [0.4] | 'John' [0.3] | 'the' N [0.3]
+VP -> V NP [0.7] | VP PP [0.3]
+V -> 'sees' [1.0]
+N -> 'dog' [0.5] | 'telescope' [0.5]
+PP -> P NP [1.0]
+P -> 'with' [1.0]
+""")
+
+# 2. Create parser
+parser = pchart.InsideChartParser(grammar)
+
+# 3. Input sentence
+sentence = "John sees the dog with the telescope".split()
+
+# 4. Parse and print all parses with probabilities
+parses = list(parser.parse(sentence))
+
+print(f"Number of parses: {len(parses)}\n")
+
+for i, tree in enumerate(parses, 1):
+    print(f"Parse {i}:")
+    print(tree)
+    print(f"Probability: {tree.prob()}\n")
+    tree.pretty_print()
