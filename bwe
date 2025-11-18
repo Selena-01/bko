@@ -1,0 +1,34 @@
+import nltk
+from nltk import word_tokenize, pos_tag, ne_chunk
+
+# Download resources (run once)
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('maxent_ne_chunker')
+nltk.download('words')
+
+# Corpus (max 70 words)
+corpus = """
+Barack Obama visited India in 2015 and met Prime Minister Narendra Modi in
+New Delhi. He also delivered a speech at Siri Fort Auditorium and discussed
+relations between the United States and India. Later, he traveled to Mumbai
+to attend an event organized by the Tata Group. The meeting highlighted
+Indo-US strategic partnerships in defense, trade, and technology.
+"""
+
+# Limit to 70 words if needed
+words = corpus.split()
+if len(words) > 70:
+    print("Corpus exceeds 70 words. Truncating to first 70.")
+    corpus = " ".join(words[:70])
+
+# Tokenize → POS Tag → Named Entity Recognition
+tokens = word_tokenize(corpus)
+pos_tags = pos_tag(tokens)
+entities = ne_chunk(pos_tags)
+
+print("\nNamed Entities Found:\n")
+for subtree in entities:
+    if hasattr(subtree, "label"):
+        entity = " ".join([token for token, pos in subtree.leaves()])
+        print(f"{entity} --> {subtree.label()}")
