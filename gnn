@@ -1,0 +1,137 @@
+def get_prob_matrix(rows, cols, name):
+    # Prompt the user and read a rows x cols probability matrix (row-wise)
+    # NOTE: The introductory print statement is now handled outside this function
+    matrix = []                  # will hold the matrix
+    for i in range(rows):        # for each required row
+        row_in = input(f"Row {i+1}: ")     # read a line of text from user
+        row = list(map(float, row_in.split()))  # convert split tokens to floats
+        if len(row) != cols:     # check correct number of columns
+            raise ValueError(f"Each row must have {cols} values")
+        s = sum(row)             # compute sum of the row
+        if abs(s - 1.0) > 1e-8:  # if row doesn't sum to ~1
+            print(f"Warning: row {i+1} of {name} sums to {s:.6f}; normalizing it.")
+            row = [x / s for x in row]     # normalize
+        matrix.append(row)       # add validated row
+    return matrix
+
+
+def forward_algorithm(obs_seq, states, start_prob, trans_prob, emis_prob, obs_dict):
+    """
+    Compute P(observations | HMM) using the Forward algorithm
+    """
+    n_states = len(states)        # number of hidden states
+    T = len(obs_seq)              # length of observation sequence
+
+    fwd = [[0.0] * n_states for _ in range(T)]  # create T × n_states table
+
+    # Initialization: alpha_0(i) = pi(i) * b_i(o_0)
+    for s in range(n_states):
+        obs_idx = obs_dict[obs_seq[0]]          # index of first observation
+        fwd[0][s] = start_prob[s] * emis_prob[s][obs_idx]
+
+    # Recursion
+    for t in range(1, T):
+        obs_idx = obs_dict[obs_seq[t]]          # index of observation at time t
+        for j in range(n_states):
+            total = 0.0
+            for i in range(n_states):           # sum over previous states
+                total += fwd[t-1][i] * trans_prob[i][j]
+            fwd[t][j] = total * emis_prob[j][obs_idx]
+
+    # Termination: probability = sum of final alphas
+    prob = sum(fwd[T-1][s] for s in range(n_states))
+    return prob
+
+
+def predict_tomorrow(today_state, states, trans_prob):
+    """
+    Predict tomorrow's weather given today's weather.
+    :param today_state: string, e.g., "Sunny"
+    :param states: list of states
+    :param trans_prob: transition matrix
+    :return: dict of tomorrow's probabilities
+    """
+    idx = states.index(today_state)
+    tomorrow_probs = trans_prob[idx]
+    return {states[i]: tomorrow_probs[i] for i in range(len(states))}
+
+
+# ------------------ MAIN --------------------
+
+states = ["Sunny", "Cloudy", "Rainy"]       # hidden states
+observations = ["Normal", "Umbrella", "Raincoat"]  # possible observations
+
+print("Hidden Markov Model for Weather prediction\n")
+
+# Input initial state probabilities
+print("Enter initial state probabilities (Sunny Cloudy Rainy):")
+start_prob = list(map(float, input().split()))
+
+if len(start_prob) != len(states):
+    raise ValueError("Invalid number of initial probabilities")
+
+s = sum(start_prob)
+if abs(s - 1.0) > 1e-8:
+    print(f"Warning: initial probs sum to {s:.6f}; normalizing.")
+    start_prob = [x / s for x in start_prob]
+
+# --- ADDED PRINT STATEMENT FOR TRANSITION MATRIX ---
+print("\nEnter transition (state-to-state) probabilities (row-wise, space-separated):")
+# Input transition probability matrix (3×3)
+trans_prob = get_prob_matrix(len(states), len(states), "transition (state-to-state)")
+
+# --- ADDED PRINT STATEMENT FOR EMISSION MATRIX ---
+print("\nEnter emission (state-to-observation) probabilities (row-wise, space-separated):")
+# Input emission probability matrix (3×3)
+emis_prob = get_prob_matrix(len(states), len(observations), "emission (state-to-observation)")
+
+# Read observation sequence
+obs_seq = input("\nEnter observation sequence (e.g., Normal Umbrella Raincoat): ").split()
+
+# Validate observation names
+obs_set = set(observations)
+for o in obs_seq:
+    if o not in obs_set:
+        raise ValueError(f"Unknown observation '{o}'. Allowed: {observations}")
+
+# Map observation to index
+obs_dict = {obs: i for i, obs in enumerate(observations)}
+
+# Compute probability
+prob = forward_algorithm(obs_seq, states, start_prob, trans_prob, emis_prob, obs_dict)
+print(f"\nProbability of the observation sequence {obs_seq} is: {prob:.6f}")
+
+# ------------------ TOMORROW'S PREDICTION --------------------
+
+today_state = input("\nEnter today's weather (Sunny/Cloudy/Rainy) to predict tomorrow: ")
+
+if today_state not in states:
+    print("Invalid state. Allowed states:", states)
+else:
+    tomorrow = predict_tomorrow(today_state, states, trans_prob)
+    print("Predicted probabilities for tomorrow's weather:", tomorrow)
+
+"""OUTPUT
+Hidden Markov Model for Weather prediction
+
+Enter initial state probabilities (Sunny Cloudy Rainy):
+ 0.2 0.3 0.5
+
+Enter transition (state-to-state) probabilities (row-wise, space-separated):
+Row 1:  0.2 0.2 0.6
+Row 2:  0.2 0.2 0.6
+Row 3:  0.2 0.2 0.6
+
+Enter emission (state-to-observation) probabilities (row-wise, space-separated):
+Row 1:  0.2 0.2 0.6
+Row 2:  0.2 0.2 0.6
+Row 3:  0.2 0.2 0.6
+
+Enter observation sequence (e.g., Normal Umbrella Raincoat):  Normal Umbrella 
+
+Probability of the observation sequence ['Normal', 'Umbrella'] is: 0.040000
+
+Enter today's weather (Sunny/Cloudy/Rainy) to predict tomorrow:  Cloudy
+Predicted probabilities for tomorrow's weather: {'Sunny': 0.2, 'Cloudy': 0.2, 'Rainy': 0.6}
+"""
+
